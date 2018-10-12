@@ -1,5 +1,10 @@
 package ru.ifmo.task1;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  * Created by Nechaev Mikhail
  * Since 09/09/2018.
@@ -12,11 +17,23 @@ public class HashUtils {
     private static final int MULTIPLIER = 0x01000193;
     private static final int LOW_BITS = 0xff;
 
+    private static final int BUFFER_SIZE = 4096;
 
-    public static int calculate(/* todo */) {
+    public static int calculate(Path file) {
         int hash = INITIAL_VALUE;
-        //todo: для каждого байта файла: hash = update(hash, nextByte);
-        return hash;
+        try (BufferedInputStream stream = new BufferedInputStream(Files.newInputStream(file), BUFFER_SIZE)) {
+            byte nextByte;
+            while ((nextByte = (byte) stream.read()) != -1) {
+                hash = update(hash, nextByte);
+            }
+            return hash;
+        } catch (IOException e) {
+            System.err.println("Cannot read file: " + e.getMessage());
+            return INCORRECT_FILE_HASH;
+        } catch (SecurityException e) {
+            System.err.println("Security exception: " + e.getMessage());
+            return INCORRECT_FILE_HASH;
+        }
     }
 
     private static int update(int currentHash, byte nextByte) {
